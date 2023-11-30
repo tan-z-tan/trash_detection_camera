@@ -10,7 +10,7 @@ from pydantic import BaseModel
 model = ultralytics.YOLO("models/yolov8m.pt")
 
 
-def capture_and_display():
+def capture_and_display(serial_port: str | None = None):
     cap = cv2.VideoCapture(0)  # カメラデバイスを開く
 
     while True:
@@ -20,7 +20,8 @@ def capture_and_display():
 
         # YOLO v8を使用してオブジェクトを検出
         objects = detect_objects(frame)
-        send_data_via_serial(objects)
+        if serial_port is not None:
+            send_data_via_serial(objects, serial_port)
 
         # 検出されたオブジェクトを画像上に描画
         for det in objects:
@@ -166,9 +167,18 @@ def send_data_via_serial(detections: list[Detection], serial_port='/dev/ttyUSB0'
             ser.write(json.dumps(detection.model_dump()).encode())
 
 
-def main():
-    capture_and_display()
+def main(serial_port: str | None = None):
+    capture_and_display(serial_port=serial_port)
 
 
 if __name__ == "__main__":
-    main()
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--serial_port",
+        type=str,
+        help="Serial port name. If not specified, serial communication will not be used.",
+        required=False,
+    )
+    args = parser.parse_args()
+    main(args.serial_port)
