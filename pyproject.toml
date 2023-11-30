@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "trash-detection-camera"
+version = "0.1.0"
+description = ""
+authors = ["Makoto Tanji <tanji.makoto@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pandas = "^2.1.3"
+opencv-python = "^4.8.1.78"
+torch = "^2.1.1"
+pyserial = "^3.5"
+ultralytics = "^8.0.220"
+pydantic = "^2.5.2"
+
+
+[tool.poetry.group.dev.dependencies]
+mypy = "^1.7.1"
+isort = "^5.12.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
