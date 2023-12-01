@@ -1,3 +1,4 @@
+import argparse
 import json
 
 import cv2
@@ -7,7 +8,7 @@ from app.detection.detector import (COCO_CLASSES, TRASH_CLASSES, Detection,
                                     Detector)
 
 
-def capture_and_display(detector: Detector, serial_port: str | None = None):
+def capture_and_display(detector: Detector, serial_port: str | None = None, visualize: bool = False):
     cap = cv2.VideoCapture(0)  # カメラデバイスを開く
 
     while True:
@@ -20,12 +21,13 @@ def capture_and_display(detector: Detector, serial_port: str | None = None):
         if serial_port is not None:
             send_data_via_serial(objects, serial_port)
 
-        # 検出されたオブジェクトを画像上に描画
-        for det in objects:
-            cv2.rectangle(frame, (det.bbox[0], det.bbox[1]), (det.bbox[2], det.bbox[3]), (255, 0, 0), 2)
-            cv2.putText(frame, det.label, (det.bbox[0], det.bbox[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 0, 0), 2)
+        if visualize:
+            # 検出されたオブジェクトを画像上に描画
+            for det in objects:
+                cv2.rectangle(frame, (det.bbox[0], det.bbox[1]), (det.bbox[2], det.bbox[3]), (255, 0, 0), 2)
+                cv2.putText(frame, det.label, (det.bbox[0], det.bbox[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 0, 0), 2)
 
-        cv2.imshow('Object Detection', frame)
+            cv2.imshow('Object Detection', frame)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
@@ -41,28 +43,39 @@ def send_data_via_serial(detections: list[Detection], serial_port='/dev/serial0'
             ser.write(json.dumps(detection.model_dump()).encode())
 
 
-def main(serial_port: str | None = None):
+def main(serial_port: str | None = None, visualize: bool = False, threshold: float = 0.5):
     # Load a model
     detector = Detector(
         "models/yolov8m.pt",
         classes=COCO_CLASSES,
         trash_classes=TRASH_CLASSES,
-        threshold=0.5)
+        threshold=threshold)
 
     capture_and_display(
         detector=detector,
         serial_port=serial_port,
+        visualize=visualize,
     )
 
 
 if __name__ == "__main__":
-    import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--serial_port",
         type=str,
         help="Serial port name. If not specified, serial communication will not be used.",
-        required=False,
+    )
+    parser.add_argument(
+        "--visualize",
+        action="store_true",
+        help="Visualize the detection result.",
+    )
+    parser.add_argument(
+        "--threshold",
+        type=float,
+        help="Threshold of confidence score.",
+        default=0.5,
     )
     args = parser.parse_args()
-    main(args.serial_port)
+
+    main(args.serial_port, args.visualize, args.threshold)

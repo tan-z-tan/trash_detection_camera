@@ -119,7 +119,7 @@ class Detector:
         self.classes = classes
         self.trash_classes = trash_classes
         self.threshold = threshold
-    
+
     def detect_objects(self, image: np.ndarray) -> list[Detection]:
         # 検出されたオブジェクトのリストを返す
         results: ultralytics.engine.results.Results = self.model.predict(source=image, stream=True)
