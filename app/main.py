@@ -1,16 +1,13 @@
 import json
-from typing import Tuple
 
 import cv2
 import serial
-import ultralytics
-from pydantic import BaseModel
 
-# Load a model
-model = ultralytics.YOLO("models/yolov8m.pt")
+from app.detection.detector import (COCO_CLASSES, TRASH_CLASSES, Detection,
+                                    Detector)
 
 
-def capture_and_display(serial_port: str | None = None):
+def capture_and_display(detector: Detector, serial_port: str | None = None):
     cap = cv2.VideoCapture(0)  # カメラデバイスを開く
 
     while True:
@@ -19,7 +16,7 @@ def capture_and_display(serial_port: str | None = None):
             break
 
         # YOLO v8を使用してオブジェクトを検出
-        objects = detect_objects(frame)
+        objects = detector.detect_objects(frame)
         if serial_port is not None:
             send_data_via_serial(objects, serial_port)
 
@@ -37,130 +34,7 @@ def capture_and_display(serial_port: str | None = None):
     cv2.destroyAllWindows()
 
 
-class Detection(BaseModel):
-    label: str
-    bbox: Tuple[int, int, int, int]
-    confidence: float
-
-
-COCO_CLASSES = [
-    "person",
-    "bicycle",
-    "car",
-    "motorcycle",
-    "airplane",
-    "bus",
-    "train",
-    "truck",
-    "boat",
-    "traffic light",
-    "fire hydrant",
-    "stop sign",
-    "parking meter",
-    "bench",
-    "bird",
-    "cat",
-    "dog",
-    "horse",
-    "sheep",
-    "cow",
-    "elephant",
-    "bear",
-    "zebra",
-    "giraffe",
-    "backpack",
-    "umbrella",
-    "handbag",
-    "tie",
-    "suitcase",
-    "frisbee",
-    "skis",
-    "snowboard",
-    "sports ball",
-    "kite",
-    "baseball bat",
-    "baseball glove",
-    "skateboard",
-    "surfboard",
-    "tennis racket",
-    "bottle",
-    "wine glass",
-    "cup",
-    "fork",
-    "knife",
-    "spoon",
-    "bowl",
-    "banana",
-    "apple",
-    "sandwich",
-    "orange",
-    "broccoli",
-    "carrot",
-    "hot dog",
-    "pizza",
-    "donut",
-    "cake",
-    "chair",
-    "couch",
-    "potted plant",
-    "bed",
-    "dining table",
-    "toilet",
-    "tv",
-    "laptop",
-    "mouse",
-    "remote",
-    "keyboard",
-    "cell phone",
-    "microwave",
-    "oven",
-    "toaster",
-    "sink",
-    "refrigerator",
-    "book",
-    "clock",
-    "vase",
-    "scissors",
-    "teddy bear",
-    "hair drier",
-    "toothbrush",
-]
-TRASH_CLASSES = [
-    "bottle",
-    "wine glass",
-    "vase",
-    "bottle",
-    "wine glass",
-    "cup",
-    "fork",
-    "knife",
-    "spoon",
-    "bowl",
-    "book",
-    "toothbrush",
-]
-
-
-def detect_objects(image) -> list[Detection]:
-    # 検出されたオブジェクトのリストを返す
-    results: ultralytics.engine.results.Results = model.predict(source=image, stream=True)  # don't save predictions
-    detections = []
-    for res in results:
-        detected_num = len(res.boxes.cls)
-        for i in range(detected_num):
-            label = COCO_CLASSES[int(res.boxes.cls[i])]
-            confidence = res.boxes.conf[i]
-            if confidence < 0.5:
-                continue
-            if label not in TRASH_CLASSES:
-                continue
-            bbox = [int(v) for v in res.boxes.xyxy[i]]
-            detections.append(Detection(label=label, confidence=confidence, bbox=bbox))
-
-    return detections
-
-
-def send_data_via_serial(detections: list[Detection], serial_port='/dev/ttyUSB0', baud_rate=9600):
+def send_data_via_serial(detections: list[Detection], serial_port='/dev/serial0', baud_rate=9600):
     with serial.Serial(serial_port, baud_rate) as ser:
         for detection in detections:
             # シリアル通信でJSON形式の文字列としてデータを送信
@@ -168,7 +42,17 @@ def send_data_via_serial(detections: list[Detection], serial_port='/dev/ttyUSB0'
 
 
 def main(serial_port: str | None = None):
-    capture_and_display(serial_port=serial_port)
+    # Load a model
+    detector = Detector(
+        "models/yolov8m.pt",
+        classes=COCO_CLASSES,
+        trash_classes=TRASH_CLASSES,
+        threshold=0.5)
+
+    capture_and_display(
+        detector=detector,
+        serial_port=serial_port,
+    )
 
 
 if __name__ == "__main__":
