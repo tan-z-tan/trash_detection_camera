@@ -26,8 +26,9 @@ poetry install
 ```
 
 ### Run
+Test on your local computer (with debug visualization).
 ```
-poetry run python -m app.main
+poetry run python -m app.main --visualize
 ```
 
 If you specify the serial port, you can send the result to the microcomputer.
