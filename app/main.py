@@ -18,8 +18,7 @@ def capture_and_display(detector: Detector, serial_port: str | None = None, visu
 
         # YOLO v8を使用してオブジェクトを検出
         objects = detector.detect_objects(frame)
-        if serial_port is not None:
-            send_data_via_serial(objects, serial_port)
+        send_data(objects, serial_port=serial_port)
 
         if visualize:
             # 検出されたオブジェクトを画像上に描画
@@ -36,11 +35,15 @@ def capture_and_display(detector: Detector, serial_port: str | None = None, visu
     cv2.destroyAllWindows()
 
 
-def send_data_via_serial(detections: list[Detection], serial_port='/dev/serial0', baud_rate=9600):
-    with serial.Serial(serial_port, baud_rate) as ser:
-        for detection in detections:
-            # シリアル通信でJSON形式の文字列としてデータを送信
-            ser.write(json.dumps(detection.model_dump()).encode())
+def send_data(detections: list[Detection], serial_port: str | None = '/dev/serial0', baud_rate: int = 9600):
+    json_str = json.dumps([det.model_dump() for det in detections])
+    print(json_str)
+
+    if serial_port is not None:
+        with serial.Serial(serial_port, baud_rate) as ser:
+            for detection in detections:
+                # シリアル通信でJSON形式の文字列としてデータを送信
+                ser.write(json_str)
 
 
 def main(serial_port: str | None = None, visualize: bool = False, threshold: float = 0.5):
