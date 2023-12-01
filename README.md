@@ -18,16 +18,20 @@ wget https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m.pt -
 ```
 
 ### Install dependencies
+Install [poetry](https://python-poetry.org/docs/#installation) if you haven't installed.
+
+Install python libraries.
 ```
 poetry install
 ```
 
 ### Run
+Test on your local computer (with debug visualization).
 ```
-poetry run python -m app.main
+poetry run python -m app.main --visualize
 ```
 
 If you specify the serial port, you can send the result to the microcomputer.
 ```
-poetry run python -m app.main --serial-port /dev/ttyUSB0
+poetry run python -m app.main --serial-port /dev/serial0
 ```
