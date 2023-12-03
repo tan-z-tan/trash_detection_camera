@@ -51,8 +51,8 @@ def send_data(detections: list[Detection], serial_port: str | None = '/dev/seria
 def main(serial_port: str | None = None, visualize: bool = False, threshold: float = 0.5):
     # Load a model
     detector = DetectorOnnx(
-        # "models/yolov8m.pt",
-        "models/yolov8n.onnx",
+        # "models/yolov8m.onnx",
+        "models/yolov8s.onnx",
         classes=COCO_CLASSES,
         trash_classes=TRASH_CLASSES,
         threshold=threshold)
