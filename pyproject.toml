@@ -13,6 +13,8 @@ torch = "^2.1.1"
 pyserial = "^3.5"
 ultralytics = "^8.0.220"
 pydantic = "^2.5.2"
+onnxruntime = "^1.16.3"
+onnx = "^1.15.0"
 
 
 [tool.poetry.group.dev.dependencies]

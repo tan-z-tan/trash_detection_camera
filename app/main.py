@@ -4,25 +4,27 @@ import json
 import cv2
 import serial
 
-from app.detection.detector import (COCO_CLASSES, TRASH_CLASSES, Detection,
-                                    Detector)
+from app.detection.detector_onnx import (COCO_CLASSES, TRASH_CLASSES, Detection, DetectorOnnx)
 
 
-def capture_and_display(detector: Detector, serial_port: str | None = None, visualize: bool = False):
+def capture_and_display(detector: DetectorOnnx, serial_port: str | None = None, visualize: bool = False):
     cap = cv2.VideoCapture(0)  # カメラデバイスを開く
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)  # カメラ画像の横幅を640に設定
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)  # カメラ画像の縦幅を480に設定
 
     while True:
         ret, frame = cap.read()
+        print(frame.shape)
         if not ret:
             break
 
         # YOLO v8を使用してオブジェクトを検出
-        objects = detector.detect_objects(frame)
-        send_data(objects, serial_port=serial_port)
+        detections = detector.detect_objects(frame)
+        send_data(detections, serial_port=serial_port)
 
         if visualize:
             # 検出されたオブジェクトを画像上に描画
-            for det in objects:
+            for det in detections:
                 cv2.rectangle(frame, (det.bbox[0], det.bbox[1]), (det.bbox[2], det.bbox[3]), (255, 0, 0), 2)
                 cv2.putText(frame, det.label, (det.bbox[0], det.bbox[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 0, 0), 2)
 
@@ -48,8 +50,9 @@ def send_data(detections: list[Detection], serial_port: str | None = '/dev/seria
 
 def main(serial_port: str | None = None, visualize: bool = False, threshold: float = 0.5):
     # Load a model
-    detector = Detector(
-        "models/yolov8m.pt",
+    detector = DetectorOnnx(
+        # "models/yolov8m.pt",
+        "models/yolov8n.onnx",
         classes=COCO_CLASSES,
         trash_classes=TRASH_CLASSES,
         threshold=threshold)
