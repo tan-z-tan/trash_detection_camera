@@ -10,11 +10,12 @@ Experimental code for Seaside Robotics.
 
 ### Download model file
 Put model file to `models/` directory.
-https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m.pt
+
+https://github.com/tan-z-tan/trash_detection_camera/releases/download/onnx_model_2023-12-03/yolov8s.onnx
 
 e.g.
 ```
-wget https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m.pt -P models/
+wget https://github.com/tan-z-tan/trash_detection_camera/releases/download/onnx_model_2023-12-03/yolov8s.onnx -P models/
 ```
 
 ### Install dependencies
