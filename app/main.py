@@ -45,7 +45,7 @@ def send_data(detections: list[Detection], serial_port: str | None = '/dev/seria
         with serial.Serial(serial_port, baud_rate) as ser:
             for detection in detections:
                 # シリアル通信でJSON形式の文字列としてデータを送信
-                ser.write(json_str)
+                ser.write(json_str.encode('utf-8'))
 
 
 def main(serial_port: str | None = None, visualize: bool = False, threshold: float = 0.5):
